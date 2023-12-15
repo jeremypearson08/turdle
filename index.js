@@ -61,12 +61,11 @@ function fetchWords() {
     })
     .catch(error => {
       console.error('Error fetching words:', error);
-      throw error; // Propagate the error if any issue occurs while fetching words
+      throw error; 
     });
 }
 
 function getRandomWordFromAPI(wordsData) {
-  // Modify this function based on the structure of the data received from the API
   const randomIndex = Math.floor(Math.random() * wordsData.length);
   return wordsData[randomIndex];
 }
@@ -80,7 +79,6 @@ function updateInputPermissions() {
     }
   }
 
-  // Special case to enable inputs for the 6th row even if it's the final turn
   if (currentRow === 6) {
     for (var i = 0; i < 5; i++) {
       inputs[inputs.length - 5 + i].disabled = false;
@@ -115,14 +113,14 @@ function clickLetter(e) {
 }
 
 function submitGuess() {
-  if (currentRow <= 6) { // Allow up to 6 guesses
+  if (currentRow <= 6) { 
     if (checkIsWord()) {
       errorMessage.innerText = '';
       compareGuess();
       if (checkForWin()) {
         setTimeout(declareWinner, 1000);
-      } else if (currentRow === 6) { // Check if it's the 6th guess
-        declareLoss(); // If it's the 6th guess and not a win, trigger the loss scenario
+      } else if (currentRow === 6) { 
+        declareLoss(); 
       } else {
         changeRow();
       }
@@ -142,13 +140,13 @@ async function checkIsWord() {
   }
 
   try {
-    const wordsData = await fetchWords(); // Fetch words from the API
-    const wordsList = wordsData.map(word => word.word); // Assuming the API returns an array of words
+    const wordsData = await fetchWords(); 
+    const wordsList = wordsData.map(word => word.word); 
 
-    return wordsList.includes(guess); // Check if the fetched words include the user's input
+    return wordsList.includes(guess); 
   } catch (error) {
     console.error('Error fetching words:', error);
-    return false; // Return false in case of an error fetching words
+    return false; 
   }
 }
 
@@ -212,13 +210,13 @@ function declareWinner() {
 }
 
 function declareLoss() {
-  recordGameStats(false, 6); // Store game stats for loss with 6 guesses
-  displayLossMessage(); // Display loss message
-  clearGameBoard(); // Clear previous guesses on the game board
-  clearKey(); // Reset key letters to black color
-  setGame(); // Start a new game
-  viewGame(); // Show game section
-  inputs[0].focus(); // Focus on the top left square of the game board
+  recordGameStats(false, 6); 
+  displayLossMessage(); 
+  clearGameBoard(); 
+  clearKey(); 
+  setGame(); 
+  viewGame(); 
+  inputs[0].focus(); 
 }
 
 function displayLossMessage() {
@@ -226,13 +224,27 @@ function displayLossMessage() {
   messageBox.classList.add('loss-message');
   messageBox.textContent = 'You lost! Try again.';
   
-  // Append the message box to the body
   document.body.appendChild(messageBox);
 
-  // Set a timeout to remove the message after 4 seconds
   setTimeout(function() {
     messageBox.remove();
   }, 4000);
+}
+
+function displayStatistics() {
+  var totalGamesElement = document.querySelector('#stats-total-games');
+  var percentageWonElement = document.querySelector('#stats-percent-correct');
+  var averageAttemptsElement = document.querySelector('#stats-average-guesses');
+
+  if (totalGamesElement && percentageWonElement && averageAttemptsElement) {
+    var statsData = calculateStatistics();
+
+    totalGamesElement.textContent = statsData.totalGames;
+    percentageWonElement.textContent = statsData.percentageWon.toFixed(2) + '%';
+    averageAttemptsElement.textContent = statsData.averageAttempts.toFixed(2);
+  } else {
+    console.error('One or more elements not found');
+  }
 }
 
 function recordGameStats() {
@@ -269,6 +281,26 @@ function clearKey() {
   }
 }
 
+function calculateStatistics() {
+  var totalGames = gamesPlayed.length;
+
+  var gamesWon = gamesPlayed.filter(game => game.solved).length;
+
+  var percentageWon = (gamesWon / totalGames) * 100 || 0; // Prevent division by zero
+
+  var totalAttempts = gamesPlayed.reduce((total, game) => {
+    return game.solved ? total + game.guesses : total;
+  }, 0);
+
+  var averageAttempts = gamesWon > 0 ? totalAttempts / gamesWon : 0;
+
+  return {
+    totalGames: totalGames,
+    percentageWon: percentageWon,
+    averageAttempts: averageAttempts
+  };
+}
+
 // Change Page View Functions
 
 function viewRules() {
@@ -300,6 +332,8 @@ function viewStats() {
   viewGameButton.classList.remove('active');
   viewRulesButton.classList.remove('active');
   viewStatsButton.classList.add('active');
+
+  displayStatistics();
 }
 
 function viewGameOverMessage() {
